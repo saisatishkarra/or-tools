@@ -90,7 +90,7 @@ targets_$1 = $(addsuffix _$1, $(DISTROS))
 $1: $$(targets_$1)
 $$(targets_$1): %_$1: docker/%/Dockerfile
 	#@docker image rm -f ${IMAGE}:$$*_$1 2>/dev/null
-	${DOCKER_BUILD_CMD} --target=$1 --tag ${IMAGE}:$$*_$1 -f $$< ..
+	${DOCKER_BUILD_CMD} --add-host=$(REMOTE_CACHE_SEVER_HOSTNAME):$(REMOTE_CACHE_SEVER_IP) --build-arg REMOTE_CACHE_SEVER=$(REMOTE_CACHE_SEVER_HOSTNAME) --target=$1 --tag ${IMAGE}:$$*_$1 -f $$< ..
 
 #$$(info Create targets: save_$1 $(addprefix save_, $(addsuffix _$1, $(DISTROS))) (debug).)
 save_targets_$1 = $(addprefix save_, $(addsuffix _$1, $(DISTROS)))

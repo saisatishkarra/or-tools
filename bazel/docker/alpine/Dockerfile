@@ -22,8 +22,10 @@ WORKDIR /home/project
 COPY . .
 
 FROM devel AS build
+ARG REMOTE_CACHE_SEVER
 RUN bazel version
-RUN bazel build --curses=no --host_javabase=@local_jdk//:jdk --cxxopt=-std=c++20 --copt='-Wno-sign-compare' //...:all
+RUN bazel build --curses=no --host_javabase=@local_jdk//:jdk --cxxopt=-std=c++20 --copt='-Wno-sign-compare' --remote_cache=http://${REMOTE_CACHE_SEVER}:8080 //ortools/... //examples/...
 
 FROM build AS test
-RUN bazel test --curses=no --host_javabase=@local_jdk//:jdk --cxxopt=-std=c++20 --copt='-Wno-sign-compare' //...:all
+ARG REMOTE_CACHE_SEVER
+RUN bazel test --curses=no --host_javabase=@local_jdk//:jdk --cxxopt=-std=c++20 --copt='-Wno-sign-compare' --remote_cache=http://${REMOTE_CACHE_SEVER}:8080 //ortools/... //examples/...

@@ -10,31 +10,40 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        distro: [alpine]
+        distro: [ubuntu, centos, alpine, macos]
         allow_failure: [false]
     env:
       DISTRO: ${{ matrix.distro }}
-    services:
-      # Label used to access the service container
-      bazel-remote-cache:
-        # Docker Hub image
-        image: buchgr/bazel-remote-cache
-        env:
-          BAZEL_REMOTE_S3_AUTH_METHOD: access_key
-          BAZEL_REMOTE_S3_BUCKET: ${{secrets.AWS_BAZEL_CACHE_S3_BUCKET}}
-          BAZEL_REMOTE_S3_ACCESS_KEY_ID: ${{secrets.AWS_BAZEL_CACHE_ACCESS_KEY}}
-          BAZEL_REMOTE_S3_SECRET_ACCESS_KEY: ${{secrets.AWS_BAZEL_CACHE_SECRET_KEY}}
-          BAZEL_REMOTE_S3_REGION: us-east-2
-          BAZEL_REMOTE_ACCESS_LOG_LEVEL: all
-          BAZEL_REMOTE_DIR: /data
-        ports:
-          # Maps tcp port  on service container to the host
-          - 9092:9092
-          - 8080:8080
 
     steps:
     - uses: actions/checkout@v2
-    
+
+    - name: Run Bazel Cache server
+      run: |
+        CONTAINER_ID=$(docker run -dt \
+          -e BAZEL_REMOTE_S3_AUTH_METHOD=access_key \
+          -e BAZEL_REMOTE_S3_BUCKET=${{secrets.AWS_BAZEL_CACHE_S3_BUCKET}} \
+          -e BAZEL_REMOTE_S3_ACCESS_KEY_ID=${{secrets.AWS_BAZEL_CACHE_ACCESS_KEY}} \
+          -e BAZEL_REMOTE_S3_SECRET_ACCESS_KEY=${{secrets.AWS_BAZEL_CACHE_SECRET_KEY}} \
+          -e BAZEL_REMOTE_S3_REGION=us-east-2 \
+          -e BAZEL_REMOTE_ACCESS_LOG_LEVEL=all \
+          -e BAZEL_REMOTE_S3_ENDPOINT=s3.us-east-2.amazonaws.com \
+          -e BAZEL_REMOTE_DIR=/data \
+          -e BAZEL_REMOTE_S3_PREFIX=ortools/${{matrix.distro}}-latest \
+          -p 9092:9092 \
+          -p 8080:8080 \
+          buchgr/bazel-remote-cache)
+        echo "REMOTE_CACHE_SEVER_IP=$(docker inspect $CONTAINER_ID | jq -r '.[].NetworkSettings.Networks.bridge.IPAddress')" >> $GITHUB_ENV
+
     ## TODO: Mount bazel cache path as host volume and pass the remote cache addr
     - name: Build project
-      run: make --directory=bazel ${DISTRO}_build
+      run: |
+        if [[ ${env.DISTRO} != "macos" ]]; then
+          make --directory=bazel ${DISTRO}_build
+        elif [[ ${env.DISTRO} == "macos" ]]; then
+          REMOTE_CACHE_SEVER_IP="localhost"
+          bazel build --cxxopt=-std=c++20 --remote_cache=http://${{REMOTE_CACHE_SEVER_IP}}:8080 //ortools/... //examples/...
+        fi
+      env:
+        REMOTE_CACHE_SEVER_HOSTNAME: bazel-remote-server-${{matrix.distro}}
+        REMOTE_CACHE_SEVER_IP: ${{env.REMOTE_CACHE_SEVER_IP}}
