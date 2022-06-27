@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        distro: [alpine, centos, ubuntu]
+        distro: [alpine]
         allow_failure: [false]
     env:
       DISTRO: ${{ matrix.distro }}
