@@ -44,7 +44,7 @@ jobs:
       
       - name: Run Bazel Cache server
         run: |
-          docker run \
+          docker run -dt \
             -e BAZEL_REMOTE_S3_AUTH_METHOD=access_key \
             -e BAZEL_REMOTE_S3_BUCKET=${{secrets.AWS_BAZEL_CACHE_S3_BUCKET}} \
             -e BAZEL_REMOTE_S3_ACCESS_KEY_ID=${{secrets.AWS_BAZEL_CACHE_ACCESS_KEY}} \
