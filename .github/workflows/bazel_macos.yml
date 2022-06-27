@@ -9,18 +9,18 @@ jobs:
           
     steps:
       - name: Check out repository code
-        uses: actions/checkout@v2
+        uses: actions/checkout@v3
 
       # https://github.com/envoyproxy/envoy/blob/main/bazel/README.md#quick-start-bazel-build-for-developers
       - name: install common deps
         run: | 
           brew install coreutils automake ninja clang-format
           
-      - name: install full xcode
-        run: |
-          sudo rm -rf /Library/Developer/CommandLineTools
-          softwareupdate --all --install --force
-          sudo xcode-select --install
+      # - name: install full xcode
+      #   run: |
+      #     sudo rm -rf /Library/Developer/CommandLineTools
+      #     softwareupdate --all --install --force
+      #     sudo xcode-select --install
 
       # https://github.com/actions/runner/issues/1456#issue-1042407558
       - name: install and launch docker
