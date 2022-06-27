@@ -9,11 +9,10 @@ jobs:
           
     steps:
       - uses: docker-practice/actions-setup-docker@master
-        if: ${{ matrix.os == 'macos-latest' }}
       
       - name: Run Bazel Cache server
         uses: addnab/docker-run-action@v3
-         with:
+        with:
           image: buchgr/bazel-remote-cache
           options: |
             -e BAZEL_REMOTE_S3_AUTH_METHOD: access_key
