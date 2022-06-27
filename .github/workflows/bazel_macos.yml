@@ -23,6 +23,7 @@ jobs:
             -e BAZEL_REMOTE_ACCESS_LOG_LEVEL: all
             -e BAZEL_REMOTE_S3_ENDPOINT: s3.us-east-2.amazonaws.com
             -e BAZEL_REMOTE_DIR: /data
+            -e BAZEL_REMOTE_S3_PREFIX: ortools/macos-latest
             -p 9092:9092
             -p 8080:8080
         

@@ -23,6 +23,7 @@ jobs:
           BAZEL_REMOTE_S3_REGION: us-east-2
           BAZEL_REMOTE_ACCESS_LOG_LEVEL: all
           BAZEL_REMOTE_S3_ENDPOINT: s3.us-east-2.amazonaws.com
+          BAZEL_REMOTE_S3_PREFIX: ortools/ubuntu-latest
           BAZEL_REMOTE_DIR: /data
         ports:
           # Maps tcp port  on service container to the host
