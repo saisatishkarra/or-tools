@@ -10,7 +10,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
-        distro: [ubuntu, centos, alpine, macos]
+        distro: [ubuntu, centos, alpine]
         allow_failure: [false]
     env:
       DISTRO: ${{ matrix.distro }}
@@ -34,16 +34,11 @@ jobs:
           -p 8080:8080 \
           buchgr/bazel-remote-cache)
         echo "REMOTE_CACHE_SEVER_IP=$(docker inspect $CONTAINER_ID | jq -r '.[].NetworkSettings.Networks.bridge.IPAddress')" >> $GITHUB_ENV
-
+    
     ## TODO: Mount bazel cache path as host volume and pass the remote cache addr
     - name: Build project
       run: |
-        if [[ ${env.DISTRO} != "macos" ]]; then
-          make --directory=bazel ${DISTRO}_build
-        elif [[ ${env.DISTRO} == "macos" ]]; then
-          REMOTE_CACHE_SEVER_IP="localhost"
-          bazel build --cxxopt=-std=c++20 --remote_cache=http://${{REMOTE_CACHE_SEVER_IP}}:8080 //ortools/... //examples/...
-        fi
+        make --directory=bazel ${DISTRO}_build
       env:
         REMOTE_CACHE_SEVER_HOSTNAME: bazel-remote-server-${{matrix.distro}}
         REMOTE_CACHE_SEVER_IP: ${{env.REMOTE_CACHE_SEVER_IP}}
