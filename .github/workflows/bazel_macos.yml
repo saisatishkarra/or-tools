@@ -8,13 +8,32 @@ jobs:
     runs-on: macos-latest
           
     steps:
-      - uses: docker-practice/actions-setup-docker@master
+      - name: Check out repository code
+        uses: actions/checkout@v2
+
+      # https://github.com/envoyproxy/envoy/blob/main/bazel/README.md#quick-start-bazel-build-for-developers
+      - name: install common deps
+        run: | 
+          brew install coreutils automake ninja clang-format
+          
+      - name: install full xcode
+        run: |
+          sudo rm -rf /Library/Developer/CommandLineTools
+          softwareupdate --all --install --force
+          sudo xcode-select --install
+
+      # https://github.com/actions/runner/issues/1456#issue-1042407558
+      - name: install and launch docker
+        run: |
+          HOMEBREW_NO_AUTO_UPDATE=1 brew install --cask docker
+          sudo /Applications/Docker.app/Contents/MacOS/Docker --unattended --install-privileged-components
+          open -a /Applications/Docker.app --args --unattended --accept-license
+          echo "We are waiting for Docker to be up and running. It can take over 2 minutes..."
+          while ! /Applications/Docker.app/Contents/Resources/bin/docker info &>/dev/null; do sleep 1; done
       
       - name: Run Bazel Cache server
-        uses: addnab/docker-run-action@v3
-        with:
-          image: buchgr/bazel-remote-cache
-          options: |
+        run: |
+          docker run buchgr/bazel-remote-cache \
             -e BAZEL_REMOTE_S3_AUTH_METHOD: access_key
             -e BAZEL_REMOTE_S3_BUCKET: ${{secrets.AWS_BAZEL_CACHE_S3_BUCKET}}
             -e BAZEL_REMOTE_S3_ACCESS_KEY_ID: ${{secrets.AWS_BAZEL_CACHE_ACCESS_KEY}}
@@ -26,15 +45,10 @@ jobs:
             -e BAZEL_REMOTE_S3_PREFIX: ortools/macos-latest
             -p 9092:9092
             -p 8080:8080
-        
-      - name: Check out repository code
-        uses: actions/checkout@v2
-        
-      - name: Install Bazel
+
+      - name: Inspect
         run: |
-          brew update
-          #brew install bazel
-          bazel --version
+          curl localhost:8080/status
 
       - name: Build
         run: bazel build --cxxopt=-std=c++20 --remote_cache=http://localhost:8080 //ortools/... //examples/...
