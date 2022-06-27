@@ -33,18 +33,19 @@ jobs:
       
       - name: Run Bazel Cache server
         run: |
-          docker run buchgr/bazel-remote-cache \
-            -e BAZEL_REMOTE_S3_AUTH_METHOD: access_key
-            -e BAZEL_REMOTE_S3_BUCKET: ${{secrets.AWS_BAZEL_CACHE_S3_BUCKET}}
-            -e BAZEL_REMOTE_S3_ACCESS_KEY_ID: ${{secrets.AWS_BAZEL_CACHE_ACCESS_KEY}}
-            -e BAZEL_REMOTE_S3_SECRET_ACCESS_KEY: ${{secrets.AWS_BAZEL_CACHE_SECRET_KEY}}
-            -e BAZEL_REMOTE_S3_REGION: us-east-2
-            -e BAZEL_REMOTE_ACCESS_LOG_LEVEL: all
-            -e BAZEL_REMOTE_S3_ENDPOINT: s3.us-east-2.amazonaws.com
-            -e BAZEL_REMOTE_DIR: /data
-            -e BAZEL_REMOTE_S3_PREFIX: ortools/macos-latest
-            -p 9092:9092
-            -p 8080:8080
+          docker run \
+            -e BAZEL_REMOTE_S3_AUTH_METHOD: access_key \
+            -e BAZEL_REMOTE_S3_BUCKET: ${{secrets.AWS_BAZEL_CACHE_S3_BUCKET}} \
+            -e BAZEL_REMOTE_S3_ACCESS_KEY_ID: ${{secrets.AWS_BAZEL_CACHE_ACCESS_KEY}} \
+            -e BAZEL_REMOTE_S3_SECRET_ACCESS_KEY: ${{secrets.AWS_BAZEL_CACHE_SECRET_KEY}} \
+            -e BAZEL_REMOTE_S3_REGION: us-east-2 \
+            -e BAZEL_REMOTE_ACCESS_LOG_LEVEL: all \
+            -e BAZEL_REMOTE_S3_ENDPOINT: s3.us-east-2.amazonaws.com \
+            -e BAZEL_REMOTE_DIR: /data \
+            -e BAZEL_REMOTE_S3_PREFIX: ortools/macos-latest \
+            -p 9092:9092 \
+            -p 8080:8080 \
+            buchgr/bazel-remote-cache
 
       - name: Inspect
         run: |
